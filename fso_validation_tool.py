@@ -1,3 +1,4 @@
+# app.py (fichier principal de l'application Streamlit)
 import streamlit as st
 import numpy as np
 import pandas as pd
