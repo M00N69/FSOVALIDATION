@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Configurez la page avant le menu de navigation
+st.set_page_config(page_title="Outil de Validation ICMSF FSO", layout="wide")
+
 # Menu de navigation
 page = st.sidebar.radio("Navigation", ["Accueil", "Paramètres"])
 
 if page == "Accueil":
-    st.set_page_config(page_title="Outil de Validation ICMSF FSO", layout="wide")
-
     st.title("Outil de Validation ICMSF FSO")
 
     st.markdown(
