@@ -50,74 +50,77 @@ increase_sd = st.sidebar.number_input(
     "Écart type de l'augmentation (log10 cfu/g)", value=0.59, step=0.1
 )
 
+# Gestion de l'erreur pour fso
 fso = st.sidebar.number_input(
-    "Objectif de sécurité alimentaire (log10 cfu/g)", value=2, step=0.1
+    "Objectif de sécurité alimentaire (log10 cfu/g)", value=2.0, step=0.1
 )
+if not isinstance(fso, (int, float)):
+    st.error("Veuillez entrer une valeur numérique valide.")
+else:
+    # Calcul de la distribution globale
+    def calculate_distribution(h0_mean, h0_sd, sr_mean, sr_sd, si_mean, si_sd):
+        # Génération d'échantillons aléatoires pour chaque paramètre
+        h0_samples = np.random.lognormal(h0_mean, h0_sd, 10000)
+        sr_samples = np.random.lognormal(sr_mean, sr_sd, 10000)
+        si_samples = np.random.lognormal(si_mean, si_sd, 10000)
 
-# Calcul de la distribution globale
-def calculate_distribution(h0_mean, h0_sd, sr_mean, sr_sd, si_mean, si_sd):
-    # Génération d'échantillons aléatoires pour chaque paramètre
-    h0_samples = np.random.lognormal(h0_mean, h0_sd, 10000)
-    sr_samples = np.random.lognormal(sr_mean, sr_sd, 10000)
-    si_samples = np.random.lognormal(si_mean, si_sd, 10000)
+        # Calcul des niveaux de contamination finaux
+        final_contamination_samples = h0_samples - sr_samples + si_samples
 
-    # Calcul des niveaux de contamination finaux
-    final_contamination_samples = h0_samples - sr_samples + si_samples
+        return final_contamination_samples
 
-    return final_contamination_samples
+    final_contamination_samples = calculate_distribution(
+        initial_contamination_mean,
+        initial_contamination_sd,
+        reduction_mean,
+        reduction_sd,
+        increase_mean,
+        increase_sd,
+    )
 
-final_contamination_samples = calculate_distribution(
-    initial_contamination_mean,
-    initial_contamination_sd,
-    reduction_mean,
-    reduction_sd,
-    increase_mean,
-    increase_sd,
-)
+    # Calcul de la proportion de produits non conformes
+    non_compliant_proportion = (
+        np.sum(final_contamination_samples > fso) / len(final_contamination_samples)
+    )
 
-# Calcul de la proportion de produits non conformes
-non_compliant_proportion = (
-    np.sum(final_contamination_samples > fso) / len(final_contamination_samples)
-)
+    # Affichage des résultats
+    st.header("Résultats")
 
-# Affichage des résultats
-st.header("Résultats")
+    st.markdown(
+        f"""
+        * **Moyenne de la contamination finale:** {np.mean(final_contamination_samples):.2f} log10 cfu/g
+        * **Écart type de la contamination finale:** {np.std(final_contamination_samples):.2f} log10 cfu/g
+        * **Proportion de produits non conformes:** {non_compliant_proportion*100:.2f}%
+        """
+    )
 
-st.markdown(
-    f"""
-    * **Moyenne de la contamination finale:** {np.mean(final_contamination_samples):.2f} log10 cfu/g
-    * **Écart type de la contamination finale:** {np.std(final_contamination_samples):.2f} log10 cfu/g
-    * **Proportion de produits non conformes:** {non_compliant_proportion*100:.2f}%
-    """
-)
+    # Affichage du graphique de la distribution
+    st.header("Distribution des niveaux de contamination finale")
 
-# Affichage du graphique de la distribution
-st.header("Distribution des niveaux de contamination finale")
+    fig, ax = plt.subplots()
+    ax.hist(final_contamination_samples, bins=50, edgecolor="black")
+    ax.set_xlabel("Contamination finale (log10 cfu/g)")
+    ax.set_ylabel("Fréquence")
+    ax.axvline(fso, color="red", linestyle="--", label="FSO")
+    ax.legend()
 
-fig, ax = plt.subplots()
-ax.hist(final_contamination_samples, bins=50, edgecolor="black")
-ax.set_xlabel("Contamination finale (log10 cfu/g)")
-ax.set_ylabel("Fréquence")
-ax.axvline(fso, color="red", linestyle="--", label="FSO")
-ax.legend()
+    st.pyplot(fig)
 
-st.pyplot(fig)
+    # Explication des résultats
+    st.markdown(
+        """
+        ### Interprétation des résultats
 
-# Explication des résultats
-st.markdown(
-    """
-    ### Interprétation des résultats
+        La distribution montre la probabilité d'obtenir différents niveaux de contamination finale dans votre produit. La ligne rouge en pointillés représente le FSO. La zone sous la courbe à droite du FSO représente la proportion de produits qui ne respectent pas le FSO.
 
-    La distribution montre la probabilité d'obtenir différents niveaux de contamination finale dans votre produit. La ligne rouge en pointillés représente le FSO. La zone sous la courbe à droite du FSO représente la proportion de produits qui ne respectent pas le FSO.
+        Cet outil fournit une représentation visuelle de l'impact de la variabilité sur votre processus. Il vous permet d'identifier les domaines potentiels d'amélioration et de quantifier le risque de non-conformité avec le FSO.
+        """
+    )
 
-    Cet outil fournit une représentation visuelle de l'impact de la variabilité sur votre processus. Il vous permet d'identifier les domaines potentiels d'amélioration et de quantifier le risque de non-conformité avec le FSO.
-    """
-)
+    st.markdown(
+        """
+        ### Avertissement
 
-st.markdown(
-    """
-    ### Avertissement
-
-    Cet outil est fourni à des fins éducatives uniquement. Il ne doit pas être utilisé pour prendre des décisions concernant la sécurité alimentaire sans consulter un professionnel qualifié en sécurité alimentaire.
-    """
-)
+        Cet outil est fourni à des fins éducatives uniquement. Il ne doit pas être utilisé pour prendre des décisions concernant la sécurité alimentaire sans consulter un professionnel qualifié en sécurité alimentaire.
+        """
+    )
