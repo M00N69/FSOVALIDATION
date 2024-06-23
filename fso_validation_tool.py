@@ -124,3 +124,13 @@ else:
         Cet outil est fourni à des fins éducatives uniquement. Il ne doit pas être utilisé pour prendre des décisions concernant la sécurité alimentaire sans consulter un professionnel qualifié en sécurité alimentaire.
         """
     )
+
+# Menu de navigation
+page = st.sidebar.radio("Navigation", ["Accueil", "Paramètres"])
+
+if page == "Accueil":
+    # ... (code de votre page principale)
+elif page == "Paramètres":
+    st.markdown("## Page des Paramètres")
+    import param  # Importe le fichier param.py
+    param.main()  # Exécute le code de param.py
