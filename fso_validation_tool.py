@@ -3,7 +3,11 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+# Menu de navigation
+page = st.sidebar.radio("Navigation", ["Accueil", "Paramètres"])
 
+if page == "Accueil":
+    # ... (code de votre page principale)
 st.set_page_config(page_title="Outil de Validation ICMSF FSO", layout="wide")
 
 st.title("Outil de Validation ICMSF FSO")
@@ -126,11 +130,7 @@ else:
         """
     )
 
-# Menu de navigation
-page = st.sidebar.radio("Navigation", ["Accueil", "Paramètres"])
 
-if page == "Accueil":
-    # ... (code de votre page principale)
 elif page == "Paramètres":
     st.markdown("## Page des Paramètres")
     import param  # Importe le fichier param.py
